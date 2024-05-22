@@ -25,7 +25,7 @@ namespace kya_karu
 
         private void Main_Load(object sender, EventArgs e)
         {
-            // This method can be used for any additional setup after the form has loaded.
+            kill_ffmpeg();//runing this ti kill all previous instace of ffmpeg.exe
         }
 
         private void btnSelectFiles_Click(object sender, EventArgs e)

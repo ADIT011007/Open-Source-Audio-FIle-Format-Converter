@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{24AD40E3-E52B-4CA4-BC2C-F62ED6B85E73}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>kya_karu</RootNamespace>
+    <RootNamespace>Audio_Converter</RootNamespace>
     <AssemblyName>Audio Converter</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -104,6 +104,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.manifest" />
     <None Include="packages.config" />
