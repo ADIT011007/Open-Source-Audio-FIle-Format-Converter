@@ -24,10 +24,10 @@ namespace kya_karu
             ffmpegProcesses = new List<Process>(); // Initialize the list
         }
 
-        private void Main_Load(object sender, EventArgs e)
+        private async void Main_Load(object sender, EventArgs e)
         {
             dependencies_check();
-            kill_ffmpeg();//runing this ti kill all previous instace of ffmpeg.exe
+            await KillFFmpegAsync();//runing this ti kill all previous instace of ffmpeg.exe
             // Check if the application is running as administrator
             if (!IsRunningAsAdmin())
             {
@@ -52,11 +52,11 @@ namespace kya_karu
 
             if (File.Exists(ffmpegPath))
             {
-                MessageBox.Show("ffmpeg.exe exists in the project directory.", "File Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("ffmpeg.exe exists in the Application directory.", "File Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                MessageBox.Show("ffmpeg.exe does not exist in the project directory.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("ffmpeg.exe does not exist in the Application directory.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -129,7 +129,7 @@ namespace kya_karu
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = false
                 };
 
                 using (var process = Process.Start(processStartInfo))
@@ -210,41 +210,49 @@ namespace kya_karu
             }
 
             txtStatus.Text = "Conversion completed.";
-            kill_ffmpeg();
         }
 
 
-        private void kill_ffmpeg()
+        private async Task KillFFmpegAsync()
         {
-
-            // Get all instances of processes named "ffmpeg"
             var ffmpegProcesses = Process.GetProcessesByName("ffmpeg");
+
+            var tasks = new List<Task>();
 
             foreach (var process in ffmpegProcesses)
             {
-                try
+                tasks.Add(Task.Run(async () =>
                 {
-                    // Kill the process
-                    process.Kill();
-                    // Optional: Wait for the process to exit
-                    process.WaitForExit();
-                }
-                catch (Exception ex)
-                {
-                    // Handle exceptions (e.g., process might have already exited)
-                    MessageBox.Show($"Failed to kill process {process.Id}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            // Kill the process asynchronously
+                            process.Kill();
+
+                            // Wait for the process to exit asynchronously
+                            await Task.Run(() => process.WaitForExit());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to kill process {process.Id}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }));
             }
 
+            // Wait for all processes to be killed asynchronously
+            await Task.WhenAll(tasks);
         }
 
 
 
 
 
-        private void Main_FormClosing(object sender, FormClosingEventArgs e)
+
+        private async void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
-            kill_ffmpeg();
+            await KillFFmpegAsync();
         }
     }
 }
