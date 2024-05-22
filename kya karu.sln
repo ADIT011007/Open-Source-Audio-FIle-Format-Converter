@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kya karu", "kya karu.csproj", "{24AD40E3-E52B-4CA4-BC2C-F62ED6B85E73}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audio Converter", "Audio Converter.csproj", "{24AD40E3-E52B-4CA4-BC2C-F62ED6B85E73}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F668EB9B-FC65-4EF9-9955-A01FA1E6E74E}"
 EndProject
