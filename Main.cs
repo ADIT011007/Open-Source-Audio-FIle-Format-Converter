@@ -26,6 +26,7 @@ namespace kya_karu
 
         private void Main_Load(object sender, EventArgs e)
         {
+            dependencies_check();
             kill_ffmpeg();//runing this ti kill all previous instace of ffmpeg.exe
             // Check if the application is running as administrator
             if (!IsRunningAsAdmin())
@@ -39,7 +40,23 @@ namespace kya_karu
             else
             {
                 // Application is running as administrator
-                MessageBox.Show("Application is running with administrator privileges.");
+                
+            }
+        }
+
+
+        private void dependencies_check()
+        {
+            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string ffmpegPath = Path.Combine(currentDirectory, "ffmpeg.exe");
+
+            if (File.Exists(ffmpegPath))
+            {
+                MessageBox.Show("ffmpeg.exe exists in the project directory.", "File Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("ffmpeg.exe does not exist in the project directory.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -140,18 +157,26 @@ namespace kya_karu
             }
         }
 
-        private async Task WaitForExitAsync(Process process)
+        private Task WaitForExitAsync(Process process)
         {
-            var tcs = new TaskCompletionSource<int>();
-            process.EnableRaisingEvents = true;
-            process.Exited += (sender, args) => tcs.TrySetResult(process.ExitCode);
-            if (!process.HasExited)
+            var tcs = new TaskCompletionSource<bool>();
+
+            // If the process has already exited, set the result immediately
+            if (process.HasExited)
             {
-                await tcs.Task;
+                tcs.SetResult(true);
             }
+            else
+            {
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, args) => tcs.TrySetResult(true);
+            }
+
+            return tcs.Task;
         }
 
-        private void btnConvert_Click(object sender, EventArgs e)
+
+        private async void btnConvert_Click(object sender, EventArgs e)
         {
             if (audioFiles.Count == 0)
             {
@@ -167,11 +192,6 @@ namespace kya_karu
 
             string selectedFormat = comboBoxFormats.SelectedItem.ToString().ToLower();
 
-            // Set progress bar properties
-            progressBar.Minimum = 0;
-            progressBar.Maximum = audioFiles.Count;
-            progressBar.Value = 0;
-
             foreach (string file in audioFiles)
             {
                 try
@@ -180,11 +200,8 @@ namespace kya_karu
                     Application.DoEvents(); // Update the UI
 
                     string outputFilePath = Path.Combine(outputFolder, Path.GetFileNameWithoutExtension(file) + "." + selectedFormat);
-                    ConvertToFormat(file, outputFilePath, selectedFormat);
+                    await ConvertToFormat(file, outputFilePath, selectedFormat); // Await the conversion
 
-                    // Increment progress bar value
-                    progressBar.Value += 1;
-                    
                 }
                 catch (Exception ex)
                 {
@@ -192,9 +209,10 @@ namespace kya_karu
                 }
             }
 
-            txtStatus.Text = "Conversion completed."; 
+            txtStatus.Text = "Conversion completed.";
             kill_ffmpeg();
         }
+
 
         private void kill_ffmpeg()
         {
