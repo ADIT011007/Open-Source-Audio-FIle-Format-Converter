@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -26,6 +27,44 @@ namespace kya_karu
         private void Main_Load(object sender, EventArgs e)
         {
             kill_ffmpeg();//runing this ti kill all previous instace of ffmpeg.exe
+            // Check if the application is running as administrator
+            if (!IsRunningAsAdmin())
+            {
+                MessageBox.Show("Oh no. It looks like this app does not have admin rights. Please wait while we restart it as an administrator for full functionality.");
+
+                // If not, restart the application with admin rights
+                RunAsAdmin();
+                Application.Exit();
+            }
+            else
+            {
+                // Application is running as administrator
+                MessageBox.Show("Application is running with administrator privileges.");
+            }
+        }
+
+        private bool IsRunningAsAdmin()
+        {
+            WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        private void RunAsAdmin()
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = true;
+            startInfo.WorkingDirectory = Environment.CurrentDirectory;
+            startInfo.FileName = Application.ExecutablePath;
+            startInfo.Verb = "runas"; // This will prompt the UAC elevation dialog
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error while trying to restart as administrator: " + ex.Message);
+            }
         }
 
         private void btnSelectFiles_Click(object sender, EventArgs e)
@@ -179,7 +218,6 @@ namespace kya_karu
                 }
             }
 
-            MessageBox.Show("All ffmpeg processes have been killed.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
